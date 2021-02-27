@@ -1,6 +1,4 @@
 <resources>
-    <string name="app_name">OMR Scanner and Answer Checker</string>
-
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="app_name">Offline Optical Mark Recognition Grader</string>
+    <string name="project_name">Offline OMR Grader</string>
 </resources>

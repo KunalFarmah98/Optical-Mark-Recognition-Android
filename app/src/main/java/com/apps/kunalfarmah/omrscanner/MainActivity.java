@@ -7,10 +7,11 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore;
-import android.support.annotation.NonNull;
-import android.support.v4.app.Fragment;
-import android.support.v4.content.FileProvider;
-import android.support.v7.app.AppCompatActivity;
+
+import androidx.annotation.NonNull;
+import androidx.core.content.FileProvider;
+import androidx.appcompat.app.AppCompatActivity;
+
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -20,29 +21,24 @@ import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.theartofdev.edmodo.cropper.CropImage;
-import com.theartofdev.edmodo.cropper.CropImageView;
 
 import org.opencv.core.Mat;
 import org.opencv.imgcodecs.Imgcodecs;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import static com.apps.kunalfarmah.omrscanner.Util.getSource;
 import static com.apps.kunalfarmah.omrscanner.Util.sout;
 
 public class MainActivity extends AppCompatActivity {
 
     private static final int MY_CAMERA_PERMISSION_CODE = 100;
-    private static final int CAMERA_REQUEST = 1;
     private static final int REQUEST_TAKE_PHOTO = 1;
-    private static final int REQUEST_IMAGE_CAPTURE = 10;
+    private static final int REQUEST_GALLERY = 2;
     private static final int MY_STORAGE_PERMISSION_CODE = 101;
     public static File file;
     String currentPhotoPath;
@@ -53,12 +49,14 @@ public class MainActivity extends AppCompatActivity {
     Uri photoURI;
     Button results;
     ImageButton retry;
+    boolean isCamera = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         System.loadLibrary("opencv_java3");
+        isCamera = getIntent().getBooleanExtra("isCamera", false);
 
         final File path =
                 Environment.getExternalStoragePublicDirectory
@@ -85,8 +83,7 @@ public class MainActivity extends AppCompatActivity {
         retry = findViewById(R.id.retry);
         if (checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(new String[]{Manifest.permission.CAMERA}, MY_CAMERA_PERMISSION_CODE);
-        }
-        if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+        } else if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, MY_STORAGE_PERMISSION_CODE);
         } else {
             dispatchTakePictureIntent();
@@ -112,15 +109,14 @@ public class MainActivity extends AppCompatActivity {
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == MY_CAMERA_PERMISSION_CODE) {
-            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            if (null != grantResults && grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 dispatchTakePictureIntent();
-
             } else {
                 Toast.makeText(this, "camera permission denied", Toast.LENGTH_LONG).show();
             }
         }
         if (requestCode == MY_STORAGE_PERMISSION_CODE) {
-            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            if (null != grantResults && grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 dispatchTakePictureIntent();
             } else {
                 Toast.makeText(this, "storage permission denied", Toast.LENGTH_LONG).show();
@@ -131,10 +127,22 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 
+        if (resultCode == RESULT_CANCELED)
+            finish();
+
         if (requestCode == REQUEST_TAKE_PHOTO && resultCode == RESULT_OK) {
             try {
-                // start cropping activity for pre-acquired image saved on the device
                 CropImage.activity(photoURI)
+                        .start(this);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        if(requestCode == REQUEST_GALLERY && resultCode == RESULT_OK){
+            currentPhotoPath = data.getData().toString();
+            try {
+                CropImage.activity(data.getData())
                         .start(this);
             } catch (Exception e) {
                 e.printStackTrace();
@@ -152,6 +160,8 @@ public class MainActivity extends AppCompatActivity {
                     e.printStackTrace();
                 }
                 img.setImageBitmap(bitmap);
+                retry.setVisibility(View.VISIBLE);
+                results.setVisibility(View.VISIBLE);
                 //photoURI = CropImage.getCaptureImageOutputUri(this);
                 //img.setImageUriAsync(photoURI);
                 Log.d("IMAGE", currentPhotoPath.toString());
@@ -180,6 +190,7 @@ public class MainActivity extends AppCompatActivity {
 
 
         }
+        super.onActivityResult(requestCode, resultCode, data);
     }
 
 
@@ -202,27 +213,30 @@ public class MainActivity extends AppCompatActivity {
     private void dispatchTakePictureIntent() {
         results.setAlpha(1f);
         results.setClickable(true);
-        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        // Ensure that there's a camera activity to handle the intent
-        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-            // Create the File where the photo should go
-            photoFile = null;
-            try {
-                photoFile = createImageFile();
-            } catch (IOException ex) {
-                // Error occurred while creating the File
-                //...
+        Intent takePictureIntent;
+        if (isCamera) {
+            takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+            if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+                photoFile = null;
+                try {
+                    photoFile = createImageFile();
+                } catch (IOException ex) {
+
+                }
+                if (photoFile != null) {
+                    photoURI = FileProvider.getUriForFile(this,
+                            "com.example.android.fileprovider",
+                            photoFile);
+                    takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
+                }
             }
-            // Continue only if the File was successfully created
-            // Continue only if the File was successfully created
-            if (photoFile != null) {
-                photoURI = FileProvider.getUriForFile(this,
-                        "com.example.android.fileprovider",
-                        photoFile);
-                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
-                startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
-            }
+            startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
+
+        } else {
+            takePictureIntent = new Intent(Intent.ACTION_OPEN_DOCUMENT, MediaStore.Images.Media.INTERNAL_CONTENT_URI);
+            startActivityForResult(takePictureIntent, REQUEST_GALLERY);
         }
+
     }
 
 
