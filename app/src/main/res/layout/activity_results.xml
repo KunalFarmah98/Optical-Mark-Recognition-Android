@@ -52,7 +52,6 @@
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
             android:textColor="#ffffff"
-            android:visibility="gone"
             android:layout_centerHorizontal="true"
             android:background="@color/colorPrimary"
             android:text="Check Answers" />

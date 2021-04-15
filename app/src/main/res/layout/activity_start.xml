@@ -36,7 +36,6 @@
             android:layout_marginTop="25dp"
             android:background="@color/colorPrimaryDark"
             android:padding="15dp"
-            android:visibility="gone"
             android:textAllCaps="false"
             android:text="SET UP ANSWER KEY\n(Recommended for checking the answers)"
             android:textColor="#FFFFFF"

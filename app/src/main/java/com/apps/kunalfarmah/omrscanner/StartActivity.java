@@ -19,18 +19,16 @@ public class StartActivity extends AppCompatActivity {
         answer = findViewById(R.id.setAnswers);
 
         scan.setOnClickListener(v -> {
-            /*Dialog dialog = new Dialog(StartActivity.this);
+            Dialog dialog = new Dialog(StartActivity.this);
             dialog.setContentView(R.layout.selection_dialog);
             dialog.findViewById(R.id.camera).setOnClickListener(view->{isCamera=true; dialog.cancel(); openActivity();});
             dialog.findViewById(R.id.gallery).setOnClickListener(view->{isCamera=false; dialog.cancel();openActivity();});
-            dialog.show();*/
-            openActivity();
+            dialog.show();
+//            openActivity();
         });
 
 
-/*
         answer.setOnClickListener(v -> startActivity(new Intent(StartActivity.this, AnswersActivity.class)));
-*/
     }
 
     public void openActivity(){
