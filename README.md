@@ -31,13 +31,11 @@ OMR Scanner android app made using OpenCV Android SDK capable of recognising sim
 
 ## See the app in action.
 ## Working of the app on 2 different OMR sheets taken stright from the computer screen.
-## https://youtu.be/g2s8hGLgqaw
 <p> <img hspace="10" src="https://github.com/KunalFarmah98/Optical-Mark-Recognition-Android/blob/main/app/src/main/res/raw/sheet_1.jpg" width =200 
   height = 350/>
 <img hspace="10" src="https://github.com/KunalFarmah98/Optical-Mark-Recognition-Android/blob/main/app/src/main/res/raw/demo_1.jpeg" width =200 
   height = 350/></p>
   
-## https://youtu.be/6ZmqwAGwBTQ
 <p> <img hspace="10" src="https://github.com/KunalFarmah98/Optical-Mark-Recognition-Android/blob/main/app/src/main/res/raw/sheet_2.jpg" width =200 
   height = 350/>
 <img hspace="10" src="https://github.com/KunalFarmah98/Optical-Mark-Recognition-Android/blob/main/app/src/main/res/raw/demo_2.jpeg" width =200 
